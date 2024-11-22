@@ -1,20 +1,102 @@
-import { Interface } from "./Interface.js"
-import { Rect } from "../Bases/Rect.js"
+import { Interface } from "../Interfaces/Interface.js";
+import { Rect } from "../Bases/Rect.js";
+
+export interface UIManagerProps {
+    gameWindow: Rect
+    isInside: Function    
+    currentInterface?: Interface
+}
 
 export class UIManager {
-    private currentInterface : Interface | null = null
+    public gameWindow
+    public currentInterface
+    public isInside
+    public interfaces:Array<Interface>
+
+    constructor({ gameWindow, currentInterface, isInside} : UIManagerProps) {
+
+        this.gameWindow = gameWindow
+
+        this.currentInterface = currentInterface
+
+        this.isInside = isInside
+
+        this.interfaces = []
+    }
+
+    createInterface(  ){
+
+        const newInterface = new Interface({
+           ...this.gameWindow, 
+        })
+
+        this.interfaces.push( newInterface )
+        this.currentInterface = newInterface
+    }
+    
+    clickEvent( {clientX, clientY} : MouseEvent){
+        
+        // console.log()
+        const components = this.currentInterface?.getComponents()
+        if( !components ) return
+        
+        const rect = new Rect({x:clientX, y:clientY, w:1, h:1})
+        
+        const clickedComponent = components.find(cmp => this.isInside(rect, cmp))
+
+        if( clickedComponent ){
+            clickedComponent.interact?.()
+        }
+    }
+
+}
+
+
+
+
+
+/*
+import { Interface } from "./Interface.js"
+import { Rect, RectProps } from "../Bases/Rect.js"
+
+export interface UIManagerProps {
+    gameWindow : Rect
+
+    interfaces?: Array<Interface>
+    currentInterface?: Interface
+}
+
+export interface UIManagerProps2  {
+    gameWindow : Rect
+}
+
+export class UIManager{
     private gameWindow: Rect
     public interfaces: Array<Interface> = []
     public transitionRunning: ((ctx:CanvasRenderingContext2D, color:string) => void) | null = null
+    public currentInterface : Interface | null
 
-    constructor( props : Rect ){
+    constructor( { gameWindow,} : UIManagerProps  ){
+        
+        this.gameWindow = gameWindow
+        
+        this.currentInterface = null // props.currentInterface || null
+        
+        this.transition()
+    }
 
-        this.gameWindow = props
-
-            this.transition()
+    createInterface( name:string ){
+        const self = this 
+        const newInterface = new Interface(
+           {
+            ...self.gameWindow
+           }
+        )
     }
 
     transition(){
+
+        /*
         const { x, y, w, h } = this.gameWindow 
         const blocksSize = 50
 
@@ -66,8 +148,10 @@ export class UIManager {
             }
 
         }
-
-    }
+*/
+    
+/*
+}
 
     addInterface( _interface: Interface ){
         this.interfaces.push( _interface )
@@ -80,3 +164,4 @@ export class UIManager {
     }
 
 }
+*/

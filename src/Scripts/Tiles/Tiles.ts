@@ -1,27 +1,29 @@
-import { Rect, RectProps } from "../Bases/Rect.js"
+import { BaseObject, BaseObjectProps } from "../Bases/ObjectBase.js"
+import { Camera } from "../Core/Camera.js"
 
-export interface TileProps extends RectProps {
-    type: string
+export interface TileProps extends BaseObjectProps {
+    type?: string
     solid?: boolean
-    layer: number
+    layer?: number
+    zindex?: number
+    classType?:string
 }
 
-export class Tile extends Rect{
-    public type
-    public layer
+export class Tile extends BaseObject {
+    public layer: number
+    public solid: boolean
+    public zindex: number
 
-    constructor( props : TileProps ){
-        super( props )
-        
-        this.type = props.type
-        this.layer = props.layer || 2
+    constructor( {x, y, w, h, type='Air', layer, solid, zindex = 0, classType = "Tile"} : TileProps ){
+        super({ x, y, w, h, classType, type })
+        this.zindex = zindex
+
+        this.layer = layer || 2
+        this.solid = solid || false
+          
     }
 
-    render( ctx : CanvasRenderingContext2D ){
+    tick(){}
 
-        ctx.fillStyle = 'blue'
-
-        ctx.fillRect( this.x, this.y, this.w, this.h )
-
-    }
+    render( ctx : CanvasRenderingContext2D, cam : Camera, spriteSize:number, spriteSheet:HTMLImageElement ){}
 }

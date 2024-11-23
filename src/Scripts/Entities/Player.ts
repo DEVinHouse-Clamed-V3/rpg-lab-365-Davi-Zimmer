@@ -1,5 +1,6 @@
 import { BaseObject } from "../Bases/ObjectBase.js"
 import { Camera } from "../Core/Camera.js"
+import { Weapon } from "../Itens/Weapon.js"
 import { Entity, EntityProps} from "./Entity.js"
 
 export interface PlayerProps extends EntityProps {
@@ -12,6 +13,10 @@ export class Player extends Entity {
     public canMove:boolean = true
     public direction: Array<number> = [0, 0]
     private jumps:number = 3
+
+    private name:string = ''
+    private force:number = 0
+    private weapon:Weapon | null = null
 
     constructor( props : PlayerProps ){
 
@@ -26,11 +31,18 @@ export class Player extends Entity {
             d: () => { this.direction[0] =  this.speed; this.invertedSprite = true},
             w: () => { this.direction[1] = -this.speed },
             s: () => { this.direction[1] =  this.speed },
+            numpadsubtract: () => {
+                this.getDamage(50)
+
+                return true
+            },
 
             space: () => {
                 this.onAir = true,
                 this.jumps--
-                if( this.jumps >= 0 ) this.orientation = [0, -30]
+                if( this.jumps >= 0 ) this.orientation = [0, -30]; else {
+                    this.setLife(0)
+                }
 
                 return true
             },
@@ -65,10 +77,12 @@ export class Player extends Entity {
         // quando o player bate na quina de algum bloco, ele fica preso.
         // não sei porq ue isso acontece, mas acho que vou deixar como fature
 
+
         const [dx, dy] = this.direction
+        const gravity = 1
 
         const testX = this.x + dx + this.orientation[ 0 ]
-        const testY = this.y + dy + this.orientation[ 1 ]
+        const testY = this.y + dy + this.orientation[ 1 ] + gravity
 
         // collider retorna a lista de itens em colisão com esta classe
         // seria bom otimizar isso.
@@ -105,14 +119,12 @@ export class Player extends Entity {
 
 
         // chão e gravidade
-        
-        const ground = collisionsY.some( (item:BaseObject) => item.type == 'Ground' && item.y > this.y )
+        // ps descobri que isso fica alternando entre true/false quando no chão em vez de apenas 
+        const ground = collisionsY.some( (item:BaseObject) => item.type == 'Ground' && item.y > this.y + 10 )
         
         if( !ground ){
-            
-            const againstForce = -1
 
-            this.orientation[ 1 ] -= againstForce
+            this.orientation[ 1 ] += gravity
 
             this.onAir = true
             
@@ -123,6 +135,22 @@ export class Player extends Entity {
             this.jumps = 3
 
         }
+    }
+
+    atack( target:Entity ){
+
+        if( !this.weapon ) return
+
+        const damage = this.getForce() + this.weapon.getDamage()
+
+        if(Math.floor(Math.random() * 10) == 1){
+            //miss
+            this.missAtack()
+            return
+        }
+
+        target.getDamage( damage )
+
     }
 
     tick( collider: Function ){
@@ -147,8 +175,24 @@ export class Player extends Entity {
        
         renderSprite(spriteSheet, ctx, spriteSize)
 
+        this.posRender( ctx, [x, y, w, h])
 
         //ctx.fillRect(x, y, w, h)
     }
+
+    getName(){ return this.name }
+    setName( name:string ) { this.name = name }
+
+
+    getForce(){ return this.force }
+    setForce(force:number){ this.force = force}
+
+    getWeapon(){ return this.weapon }
+    setWeapon(weapon:Weapon){ this.weapon = weapon}
+
+
+    // get(){ return this. }
+    // set(:){ this. =}
+
 
 }

@@ -31,6 +31,7 @@ export class Entity extends BaseObject {
     public canMove = true
     public speed: number
     public invertedSprite:boolean = false
+    public posRenderFuncs: Array< Function > = []
 
     constructor( props : EntityProps ){
         
@@ -45,6 +46,7 @@ export class Entity extends BaseObject {
         this.sprites = {
             idle: [[0, 0, 20, 37]]            
         }
+
 
         // this.animation = props.spriteStatus || 'idle'
         //this.changeAnimation('idle')
@@ -142,6 +144,36 @@ export class Entity extends BaseObject {
        
     }
 
+    missAtack(){
+        
+    }
+
+    getDamage( damage:number ){
+        const life = this.getLife() - damage        
+        this.setLife( life )
+
+        this.addInPosRender(( ctx:CanvasRenderingContext2D, [x, y, w, h]:Array<number>) => {
+            ctx.fillRect(x,y,w,h)
+            return true
+        })
+
+    }
+    
+    die(){
+        console.log("DIE!!!")
+    }
+
+    posRender( ctx : CanvasRenderingContext2D, [x, y, w, h]:Array<number> ){
+
+        // caso o retorno do pos render for true, ele será removido
+        this.posRenderFuncs = this.posRenderFuncs
+        .filter( func => !( func( ctx, [x, y, w, h]) )) 
+        
+    }
+
+    addInPosRender(func:Function){
+        this.posRenderFuncs.push( func )
+    }
 
     tick( collider: Function ){
         this.updateAnimation()
@@ -160,9 +192,12 @@ export class Entity extends BaseObject {
 
         const [ x, y, w, h ] = cam.calcCoords( this )
 
+        this.posRender( ctx, [x, y, w, h])
+
         ctx.fillStyle = 'blue'
         ctx.fillRect(x,y,w,h)
     }
 
-
+    getLife(){ return this.life }
+    setLife( life:number ) { this.life = life }
 }

@@ -371,11 +371,17 @@ class Game {
  
         renderableOrder.forEach( item => {
             
-            if( item.classType == "entity" ){
+            if( item instanceof Entity ){
+
+                if( item.getLife() <= 0 ) {
+                    item.die()
+                    return
+                }
 
                 const collider = ( e:Rect ) => renderable.filter(elm => self.collision( e, elm ))
 
                 item.tick( collider )
+                
             }
 
             item.render( ctx, cam, self.spriteSize, self.spriteSheet )

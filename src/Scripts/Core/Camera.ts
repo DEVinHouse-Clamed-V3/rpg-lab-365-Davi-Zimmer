@@ -30,8 +30,8 @@ export class Camera {
         const newX = (target.x + target.w / 2) - (width  / 2) / this.zoom
         const newY = (target.y + target.h / 2) - (height / 2) / this.zoom
 
-        this.x = this.clamp( newX, 0, maxMapW * this.zoom )
-        this.y = this.clamp( newY, 0, maxMapH * this.zoom )
+        this.x = this.clamp( newX, 0, maxMapW - innerWidth )
+        this.y = this.clamp( newY, 0, maxMapH - innerHeight )
     }
 
     /// criar metodo de perseguição pro player aqui

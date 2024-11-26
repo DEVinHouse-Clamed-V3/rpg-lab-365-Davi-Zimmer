@@ -1,8 +1,8 @@
 export interface BaseObjectProps {
-    x: number
-    y: number
-    w: number
-    h: number
+    x?: number
+    y?: number
+    w?: number
+    h?: number
     classType?:string
     zindex?: number
     collisionMask?: Record<string, number>
@@ -20,7 +20,7 @@ export class BaseObject {
     public collisionMask:Record<string, number>
     public self: BaseObject = this
     public type: string
-    constructor({x=0, y=0, w=0, h=0, classType="Rect", zindex = 2, type="Rect", collisionMask={x, y, w, h}}:BaseObjectProps){
+    constructor({x=1, y=1, w=1, h=1, classType="Rect", zindex = 2, type="Rect", collisionMask={x, y, w, h}}:BaseObjectProps){
         this.x = x
         this.y = y
         this.w = w

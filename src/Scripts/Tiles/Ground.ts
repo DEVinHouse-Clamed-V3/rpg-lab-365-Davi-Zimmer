@@ -21,7 +21,6 @@ export class Ground extends Tile {
             this.w * cam.zoom,
             this.h * cam.zoom
         ]
-
         
         ctx.fillRect(x, y, w+1, h+1)
 

@@ -1,11 +1,9 @@
 import { Sprites } from "../Visual/Sprites.js"
-import { BaseObject as Rect, BaseObjectProps } from "../Bases/ObjectBase.js"
-import { Entity, EntityProps} from "../Entities/Entity.js"
+import { BaseObject as Rect } from "../Bases/ObjectBase.js"
+import { Entity } from "../Entities/Entity.js"
 import { Player } from "../Entities/Player.js"
 import { Camera } from "./Camera.js"
-import { MapMatix } from "../Map/MapMatrix.js"
 import { MapTiles } from "../Map/MapTiles.js"
-import { Tile } from "../Tiles/Tiles.js"
 import { UIManager } from "../Interfaces/UIManager.js"
 import { Enemy } from "../Entities/Enemy.js"
 import { Projectile } from "../Projectile/Projectile.js"
@@ -37,8 +35,9 @@ class Game {
     private camera:Camera = new Camera(0, 0, 1)
     private map: MapTiles = new MapTiles( 10, 2, 100, map )
     private cameraTarget: Rect | null = null
+
     private Boss:Boss =  new Boss({
-        life: 7800,
+        life: 50, // 7800
         speed: 0,
         type: "Boss",
         zindex: -10,
@@ -64,6 +63,9 @@ class Game {
             console.warn( e )
             //alert('Não foi possível carregar os sprites do jogo.')
         })
+
+
+       
 
     }
 
@@ -268,8 +270,6 @@ class Game {
 
         this.uiManager.createInterface()
 
-        // const playerSprites = this.sprites?.GetSpritesByName('player')
-
         const h = 180
         const player = new Player({
             x: 0, y: -100, w:h / 2, h,
@@ -294,15 +294,11 @@ class Game {
 
         this.items.push( life )
 
-
         this.entities.push( player )
         this.entities.push( enemy )
         this.entities.push( this.Boss )
 
         this.Boss.setPlayer( player )
-
-        // this.entities.push( entity )
-        // this.createElement( entity )
 
         this.cameraTarget = player
         this.eventTarget = player
@@ -325,12 +321,10 @@ class Game {
     }
 
     getMapSize(){
-        const tileSize = this.map.tileSize
         const a = this.map.map.length-1
         const b = this.map.map[a].length-1
 
         const lastTile = this.map.map[a][b]
-        // console.log( lastTile )
 
         return [
            ( lastTile.x + lastTile.w ),
@@ -350,16 +344,7 @@ class Game {
             h: height + bonus * 2 * z
         }
 
-        const item =  rect.getCollisionMask()
-        /*
-        {
-            x:rect.x * z,
-            y:rect.y * z,
-            w:rect.w * z,
-            h:rect.h * z
-        }
-        */
-            
+        const item =  rect.getCollisionMask()           
 
         const inCamera = Game.IsInside( item, camObj )
 
@@ -419,9 +404,6 @@ class Game {
 
         // Render
 
-        // limpa toda a tela
-        //ctx.fillStyle = '#323232'
-        //ctx.fillRect(0, 0, canvas.width, canvas.height)
 
         // essa é a tela do jogo em si
         ctx.fillStyle = 'rgba(0, 0, 0, 1)'
@@ -444,10 +426,6 @@ class Game {
             const sizeHeight = innerHeight / colors.length - 1
             draw( elm, i * sizeHeight)
         })
-
-
-        // self.Boss.tick()
-        // self.Boss.render(  ctx, cam, self.spriteSize, self.spriteSheet )
 
 
         const renderable = [
@@ -483,7 +461,6 @@ class Game {
                     elm.type != "Projectile" && self.collision( e, elm )
 
                 )
-
                 
                 if( item instanceof Entity ){
                     const [ x , y ] = self.insideMap( item )
@@ -495,8 +472,6 @@ class Game {
                 item.tick( collider )
                 
             }
-
-          
 
             const renderDistance = 100
 
@@ -510,10 +485,6 @@ class Game {
 
         // self.uiManager?.currentInterface?.render( ctx )
 
-
-        return
-        // self.uiManager.transitionRunning?.( ctx,'blue' )
-
     }
 
     getScore( self:Game){ return self.score }
@@ -522,28 +493,3 @@ class Game {
 }
 
 const game = new Game()
-
-
-/*
-const map = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
-]
-    
-*/

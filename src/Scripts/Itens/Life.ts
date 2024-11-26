@@ -1,4 +1,3 @@
-import { BaseObject } from "../Bases/ObjectBase.js";
 import { Camera } from "../Core/Camera.js";
 import { Player } from "../Entities/Player.js";
 import { Item, ItemProps } from "./Item.js";

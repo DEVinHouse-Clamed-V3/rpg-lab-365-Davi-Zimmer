@@ -3,7 +3,6 @@ import { Entity, EntityProps } from "../Entities/Entity.js";
 import { Life } from "../Itens/Life.js";
 import { Weapon } from "../Itens/Weapon.js";
 import { Ground } from "../Tiles/Ground.js";
-import { Player } from "./Player.js";
 
 export interface EnemyProps extends EntityProps {
     target?: Entity | null,
@@ -15,6 +14,7 @@ export class Enemy extends Entity {
     private timeToForgive: number = 0
     private aceleration: Array<number> = [0, 0]
     private forigive:boolean = true
+    private randomAct:() => void
 
     constructor( props : EnemyProps){
         super( props )
@@ -35,6 +35,20 @@ export class Enemy extends Entity {
         this.setWeapon( new Weapon({
             x: 0, y:0, w: 0, h: 0, damage: 5, description: 'Estou impactado', name:'Impacto'
         }))
+
+        let a = 0
+        this.randomAct = () => {
+            
+            a++
+            
+            if( a > 200){
+                a = 0
+                this.action()
+
+            }
+
+        }
+        
     }
 
     follow( entity: Entity ){
@@ -81,22 +95,17 @@ export class Enemy extends Entity {
     collision( collider:Function ){
         const [dx, dy] = this.aceleration
 
-
         const testX = this.x + dx
         const testY = this.y + dy
 
-        // collider retorna a lista de itens em colisão com esta classe
-        // seria bom otimizar isso.
+        
         const collisionsX = collider({x: testX , y:this.y, w:this.w, h:this.h, self:this})
         const collisionsY = collider({x: this.x, y:testY , w:this.w, h:this.h, self:this})
-
-
-    
 
         if( !(collisionsX[0] instanceof Ground) ){
             this.x += dx
         } else {
-            const [ax, ay] = this.aceleration
+            const [ax, ay] = this.aceleration.map( n => n * .9 )
             this.aceleration = [ax * -.5, ay]
         }
 
@@ -104,11 +113,9 @@ export class Enemy extends Entity {
             this.y += dy
 
         } else {
-            const [ax, ay] = this.aceleration
+            const [ax, ay] = this.aceleration.map( n => n * .9 )
             this.aceleration = [ax, ay * -.5 ]
         }
-
-
 
     }
 
@@ -162,8 +169,11 @@ export class Enemy extends Entity {
                 this.aceleration = [0, 0]
             }
 
-        }
+        } else {
 
+            this.randomAct()
+        }
+        
     }
 
     render(ctx: CanvasRenderingContext2D, cam: Camera, spriteSize: number, spriteSheet: HTMLImageElement): void {
@@ -181,9 +191,16 @@ export class Enemy extends Entity {
     }
 
     action(){
-        // faz algo aleatório
+        // faz algo aleatório, no caso anda pra qualquer lado
+        // this.aceleration
+        const rnd = (n:number) => Math.floor( Math.random() * n)
+        const magnitudeX = rnd( 10 )
+        const magnitudeY = rnd( 10 )
 
+        const dx = rnd( magnitudeX ) * (rnd(2) * 2 - 1)
+        const dy = rnd( magnitudeY ) * (rnd(2) * 2 - 1)
+
+        this.aceleration = [ dx, dy ]
 
     }
 }
-

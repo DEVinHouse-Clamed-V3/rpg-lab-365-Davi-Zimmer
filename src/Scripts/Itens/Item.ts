@@ -1,5 +1,4 @@
 import { BaseObject, BaseObjectProps } from "../Bases/ObjectBase.js";
-import { Rect, RectProps } from "../Bases/Rect.js";
 import { Camera } from "../Core/Camera.js";
 import { Entity } from "../Entities/Entity.js";
 import { Player } from "../Entities/Player.js";

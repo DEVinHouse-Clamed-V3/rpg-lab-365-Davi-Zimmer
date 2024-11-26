@@ -1,6 +1,7 @@
 import { Camera } from "../Core/Camera.js";
+import { Weapon } from "../Itens/Weapon.js";
 import { Enemy, EnemyProps } from "./Enemy.js";
-import { Entity, EntityProps } from "./Entity.js";
+import { Entity } from "./Entity.js";
 import { Player } from "./Player.js";
 
 export interface BossProps extends EnemyProps {
@@ -53,7 +54,7 @@ function getAnimation(getCurrentFrame:Function, addOne:Function, setCurrentFrame
 
 export class Boss extends Enemy {
     private irisPosition:Array<number> = [0, 0]
-    private currentPlanetSprite: number = 3
+    private currentPlanetSprite: number = 0
     private currentIrisSprite: number = 0
     private functionsToTick: Array<Function> = []
     private inCombat: boolean = false
@@ -64,6 +65,7 @@ export class Boss extends Enemy {
     private player
     private score: Record<string, Function> = {}
     private irisRandomizerCooldown:number = 50
+    private earthquakeForce:number
 
     constructor({ speed=0, type="Boss", life=7800, player, zindex, createElement, score, cam} : BossProps ){
         const size = 600
@@ -105,9 +107,6 @@ export class Boss extends Enemy {
 
         this.createElement = createElement
 
-        // this.planetSprite = 
-        //this.setIrisPosition(35, 35)
-
         const rnd = ( multiplyer:number ) => Math.floor( Math.random() * multiplyer ) 
 
         const starsQuantity = 500
@@ -121,7 +120,6 @@ export class Boss extends Enemy {
         // organiza as estrelas pela posição X
         this.stars = this.stars.sort( (starA, starB) => starA[0] - starB[0] )
 
-
         let actived = false
 
         this.setDamageAction( () => {
@@ -129,12 +127,24 @@ export class Boss extends Enemy {
             if( !actived ){
 
                 this.active( rnd, cam )
+
                 actived = true
 
             }
 
-       })
+        })
+    
+        this.setWeapon( new Weapon({
+            damage: 25,
+            description:" um terremoto no mundo todo",
+            name: "onda de choque"
+        }))
 
+        this.setForce( 25 )
+
+        // const earthquake = (n:number) => cam.setEarthquakeForce( n )
+
+        this.earthquakeForce = 0
 
     }
 
@@ -204,6 +214,12 @@ export class Boss extends Enemy {
 
     }
 
+    whenDead(createElement: Function, getScore: Function, setScore: Function): void {
+
+        // this.earthquake( 20 )
+        
+    }
+
     blink(){
 
         const getCurrentFrame = () => this.currentPlanetSprite
@@ -251,7 +267,6 @@ export class Boss extends Enemy {
         const xAxis = (playerMiddle[0] - cam.x) - thisMiddle[0] - cam.x / 100
         const yAxis = (playerMiddle[1] - cam.y) - thisMiddle[1] - cam.y / 100
 
-
         //this.setIrisPosition( xAxis, yAxis )
         const magnitude = Math.sqrt(xAxis ** 2 + yAxis ** 2)
 
@@ -274,7 +289,6 @@ export class Boss extends Enemy {
 
         }
 
-
         const maxOffset = 35;
         const irisX = randX * maxOffset
         const irisY = randY * maxOffset
@@ -288,7 +302,7 @@ export class Boss extends Enemy {
 
     setIrisPosition( x:number = this.irisPosition[0], y:number = this.irisPosition[1] ){
 
-        const clamp = (n:number) => Math.min( Math.max(n, -30), 30) 
+        const clamp = (n:number) => Math.min( Math.max(n, -30), 30 ) 
 
         this.irisPosition = [ clamp(x), clamp(y) ]
     }
@@ -297,11 +311,25 @@ export class Boss extends Enemy {
 
         // console.log( collider )
 
+        this.earthquakeForce = Math.max( this.earthquakeForce -.1, 0) 
+
         this.irisRandomizerCooldown -= 1
 
         if( this.irisRandomizerCooldown < 0){
             this.irisRandomizerCooldown = 100 * Math.floor(Math.random()  * 50)
         }
+
+        if( this.currentIrisSprite == 1 ){
+            this.earthquakeForce = 50
+        } 
+
+        if( this.currentPlanetSprite == 0 && this.inCombat ){
+
+            this.earthquakeForce = 30
+            
+            this.atack( this.player as Entity ) 
+        }
+
 
         // se o retorno da função for true, ele sera descartado da lista
         this.functionsToTick = this.functionsToTick.filter( func => !(func()))
@@ -426,6 +454,8 @@ export class Boss extends Enemy {
             const [dx, dy, dw, dh] = planetSprite.map( n => spriteSize * n)
             ctx.drawImage( spriteSheet, dx, dy, dw, dh, planetPosition.x, planetPosition.y, this.w, this.h  )
         }
+
+        cam.setEarthquakeForce( this.earthquakeForce )
 
         /*
         // desenha a arvore

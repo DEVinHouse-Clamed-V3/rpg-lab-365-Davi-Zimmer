@@ -1,5 +1,4 @@
 import { BaseObject } from "../Bases/ObjectBase.js"
-import { Rect } from "../Bases/Rect.js"
 import { Camera } from "../Core/Camera.js"
 import { Weapon } from "../Itens/Weapon.js"
 import { Projectile } from "../Projectile/Projectile.js"
@@ -31,9 +30,9 @@ export class Player extends Entity {
         }
 
         this.acceptedKeys = {
+            // w: () => { this.direction[1] = -this.speed },
             a: () => { this.direction[0] = -this.speed; this.invertedSprite = false; runAnimation() },
             d: () => { this.direction[0] =  this.speed; this.invertedSprite = true ; runAnimation() },
-            w: () => { this.direction[1] = -this.speed },
             s: () => { this.direction[1] =  this.speed },
             numpadsubtract: () => {
                 // this.getDamaged(50, this)
@@ -208,6 +207,7 @@ export class Player extends Entity {
         const renderSprite = this.getSpriteToRenter(x, y, w, h)
        
 
+        /*
         const renderMe = (b:number) => {
         
             ctx.fillStyle = 'blue'
@@ -215,7 +215,7 @@ export class Player extends Entity {
         }
         
         renderMe( (this.damageCooldown % 2) * 5  )
-
+        */
         renderSprite(spriteSheet, ctx, spriteSize)
 
         this.posRender( ctx, [x, y, w, h], cam)
@@ -244,8 +244,7 @@ export class Player extends Entity {
             life * (lifeBar.w - border * 2) / this.maxLife,
             lifeBar.h - border * 2
         )
-        
-
+    
         //ctx.fillRect(x, y, w, h)
     }
 

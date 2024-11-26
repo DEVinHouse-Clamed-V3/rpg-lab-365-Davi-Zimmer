@@ -1,6 +1,5 @@
 import { BaseObject, BaseObjectProps } from "../Bases/ObjectBase.js"
 import { Camera } from "../Core/Camera.js"
-import { Tile } from "../Tiles/Tiles.js"
 import { Weapon } from "../Itens/Weapon.js"
 
 export interface EntityProps extends BaseObjectProps {

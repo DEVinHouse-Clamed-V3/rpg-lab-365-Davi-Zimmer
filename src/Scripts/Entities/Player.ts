@@ -1,5 +1,9 @@
 import { BaseObject } from "../Bases/ObjectBase.js"
+import { Rect } from "../Bases/Rect.js"
 import { Camera } from "../Core/Camera.js"
+import { Weapon } from "../Itens/Weapon.js"
+import { Projectile } from "../Projectile/Projectile.js"
+import { Ground } from "../Tiles/Ground.js"
 import { Entity, EntityProps} from "./Entity.js"
 
 export interface PlayerProps extends EntityProps {
@@ -8,10 +12,12 @@ export interface PlayerProps extends EntityProps {
 export class Player extends Entity {
     private acceptedKeys: Record<string, Function> = {}
     private keysToExecute: Record<string, Function> = {}
+
     private onAir:boolean = false
     public canMove:boolean = true
     public direction: Array<number> = [0, 0]
     private jumps:number = 3
+    private maxLife:number = 500
 
     constructor( props : PlayerProps ){
 
@@ -20,12 +26,20 @@ export class Player extends Entity {
         super( props )
 
         // this.speed = props.speed
+        const runAnimation = () => {
+            this.changeAnimation("running")
+        }
 
         this.acceptedKeys = {
-            a: () => { this.direction[0] = -this.speed; this.invertedSprite = false},
-            d: () => { this.direction[0] =  this.speed; this.invertedSprite = true},
+            a: () => { this.direction[0] = -this.speed; this.invertedSprite = false; runAnimation() },
+            d: () => { this.direction[0] =  this.speed; this.invertedSprite = true ; runAnimation() },
             w: () => { this.direction[1] = -this.speed },
             s: () => { this.direction[1] =  this.speed },
+            numpadsubtract: () => {
+                // this.getDamaged(50, this)
+
+                return true
+            },
 
             space: () => {
                 this.onAir = true,
@@ -47,7 +61,47 @@ export class Player extends Entity {
             
         }
 
-        this.changeAnimation("running")
+        this.changeAnimation("idle")
+
+        this.setMissPercent( 20 )
+
+        this.setWeapon( new Weapon({
+            damage: 30,
+            description:"",
+            name:'cringe',
+            x:0, y:0, w: 50, h: 50
+        }))
+
+    }
+
+    clickEvent( {clientX, clientY} : MouseEvent, createElement:Function, cam:Camera){
+         let [mx, my]= this.getMiddle()
+        
+        const projectile = new Projectile({
+            x: mx,
+            y: my,
+            w:10,
+            h:10,
+            speed: 20,
+            life: 50,
+            mouseX: clientX + cam.x,
+            mouseY: clientY + cam.y,
+            sender: this,
+            activation: ( target:Entity ) => {
+                this.atack( target  )
+            }
+        })
+
+        /*
+        const entity = new Entity({
+            x: 200, y: 100, w: 100, h: 100,
+            life: 100, type: 'any',
+            speed: 10, 
+        })
+        createElement( entity )
+        */
+
+       createElement( projectile )
 
     }
 
@@ -55,7 +109,8 @@ export class Player extends Entity {
         
         return {
             acceptedKeys: this.acceptedKeys,
-            keysToExecute: this.keysToExecute
+            keysToExecute: this.keysToExecute,
+            
         }
 
     }
@@ -66,9 +121,14 @@ export class Player extends Entity {
         // não sei porq ue isso acontece, mas acho que vou deixar como fature
 
         const [dx, dy] = this.direction
+        const gravity = 1
 
         const testX = this.x + dx + this.orientation[ 0 ]
-        const testY = this.y + dy + this.orientation[ 1 ]
+        const testY = this.y + dy + this.orientation[ 1 ] + gravity
+
+        if( dx + this.orientation[ 0 ] == 0 ){
+            this.changeAnimation('idle')
+        }
 
         // collider retorna a lista de itens em colisão com esta classe
         // seria bom otimizar isso.
@@ -76,15 +136,17 @@ export class Player extends Entity {
         const collisionsY = collider({x: this.x, y:testY , w:this.w, h:this.h, self:this})
 
         // atualização de movimento do player por frame
-        if( !collisionsX[0] ) {
+        // const isTile = ( item:Entity | Projectile ) => item instanceof Ground
+
+        if( !(collisionsX[0] instanceof Ground)) {
 
             this.x += dx + this.orientation[ 0 ]
 
-        } 
+        }
         else this.orientation[0] = 0
 
 
-        if( !collisionsY[0] ) {
+        if( !(collisionsY[0] instanceof Ground)) {
 
             this.y += dy + this.orientation[ 1 ]
         }
@@ -105,14 +167,12 @@ export class Player extends Entity {
 
 
         // chão e gravidade
-        
-        const ground = collisionsY.some( (item:BaseObject) => item.type == 'Ground' && item.y > this.y )
+        // ps descobri que isso fica alternando entre true/false quando no chão em vez de apenas 
+        const ground = collisionsY.some( (item:BaseObject) => item.type == 'Ground' && item.y > this.y + 10 )
         
         if( !ground ){
-            
-            const againstForce = -1
 
-            this.orientation[ 1 ] -= againstForce
+            this.orientation[ 1 ] += gravity
 
             this.onAir = true
             
@@ -126,7 +186,9 @@ export class Player extends Entity {
     }
 
     tick( collider: Function ){
-        
+
+        this.damageCooldownSubtractor()
+
         if( this.canMove ) this.movementAndCollision( collider )
 
         this.updateAnimation()
@@ -145,10 +207,54 @@ export class Player extends Entity {
         
         const renderSprite = this.getSpriteToRenter(x, y, w, h)
        
+
+        const renderMe = (b:number) => {
+        
+            ctx.fillStyle = 'blue'
+            ctx.fillRect( x-b, y-b, w+b*2, h+b*2 )
+        }
+        
+        renderMe( (this.damageCooldown % 2) * 5  )
+
         renderSprite(spriteSheet, ctx, spriteSize)
 
+        this.posRender( ctx, [x, y, w, h], cam)
+
+
+        const lifeBar = {
+            x: innerWidth,
+            y: 100,
+            w: 300,
+            h: 50
+        }
+
+        lifeBar.x -= lifeBar.w + 100
+
+        const border = 5
+
+        ctx.fillStyle = 'gray'
+        ctx.fillRect( lifeBar.x, lifeBar.y, lifeBar.w, lifeBar.h )
+
+        const life = this.getLife()
+
+        ctx.fillStyle = 'lime'
+        ctx.fillRect(
+            lifeBar.x + border,
+            lifeBar.y + border,
+            life * (lifeBar.w - border * 2) / this.maxLife,
+            lifeBar.h - border * 2
+        )
+        
 
         //ctx.fillRect(x, y, w, h)
     }
+
+    setLife( life:number ) {
+        this.life = Math.min( this.maxLife , this.life + life )
+    }
+
+    // get(){ return this. }
+    // set(:){ this. =}
+
 
 }

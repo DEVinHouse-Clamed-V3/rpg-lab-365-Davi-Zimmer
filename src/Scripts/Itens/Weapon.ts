@@ -1,3 +1,5 @@
+import { Camera } from "../Core/Camera.js";
+import { Player } from "../Entities/Player.js";
 import { Item, ItemProps } from "./Item.js";
 
 export interface WeaponProps extends ItemProps {
@@ -12,6 +14,15 @@ export class Weapon extends Item {
         
         this.setDamage( damage )
         
+    }
+
+    activation( target: Player ){
+        target.floatingText("yellow", "Arma nova" )
+    }
+
+
+    render(ctx: CanvasRenderingContext2D, cam: Camera, spriteSize: number, spriteSheet: HTMLImageElement): void {
+        this.renderSprite(ctx, cam, spriteSize, spriteSheet, 'yellow')
     }
 
     getDamage() { return this.damage }
